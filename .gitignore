@@ -1,0 +1,4 @@
+# WireGuard secrets and generated configuration
+*.key
+*.conf
+configs/
