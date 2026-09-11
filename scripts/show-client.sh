@@ -22,8 +22,10 @@ cat "$CLIENT_FILE"
 
 echo
 if command -v qrencode >/dev/null 2>&1; then
-  echo "QR code:"
+  echo "QR code (scan with the WireGuard mobile app):"
   qrencode -t ANSIUTF8 < "$CLIENT_FILE"
 else
-  echo "Tip: install qrencode for a terminal QR code: apt-get install -y qrencode"
+  echo "QR code unavailable. Install it with:"
+  echo "  sudo apt-get install -y qrencode"
+  echo "Then rerun this command."
 fi
