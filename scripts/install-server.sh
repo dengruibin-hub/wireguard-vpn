@@ -27,6 +27,8 @@ if [[ ! -f "$WG_DIR/server_private.key" ]]; then
   umask 077
   wg genkey | tee "$WG_DIR/server_private.key" | wg pubkey > "$WG_DIR/server_public.key"
 fi
+chmod 600 "$WG_DIR/server_private.key"
+chmod 644 "$WG_DIR/server_public.key"
 
 SERVER_PRIVATE_KEY="$(cat "$WG_DIR/server_private.key")"
 DEFAULT_IFACE="$(ip route show default | awk 'NR==1 {print $5}')"
@@ -41,8 +43,9 @@ if [[ ! -f "$WG_CONF" ]]; then
 Address = $WG_SERVER_ADDR
 ListenPort = $WG_PORT
 PrivateKey = $SERVER_PRIVATE_KEY
-PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -s $WG_NETWORK -o $DEFAULT_IFACE -j MASQUERADE
-PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -s $WG_NETWORK -o $DEFAULT_IFACE -j MASQUERADE
+# Full-tunnel IPv4. Client-to-client forwarding is intentionally blocked.
+PostUp = iptables -A FORWARD -i %i -o $DEFAULT_IFACE -j ACCEPT; iptables -A FORWARD -i $DEFAULT_IFACE -o %i -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT; iptables -t nat -A POSTROUTING -s $WG_NETWORK -o $DEFAULT_IFACE -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -o $DEFAULT_IFACE -j ACCEPT; iptables -D FORWARD -i $DEFAULT_IFACE -o %i -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT; iptables -t nat -D POSTROUTING -s $WG_NETWORK -o $DEFAULT_IFACE -j MASQUERADE
 EOF
   chmod 600 "$WG_CONF"
 fi
@@ -60,8 +63,9 @@ if command -v ufw >/dev/null 2>&1 && ufw status | grep -q "Status: active"; then
 fi
 
 echo
- echo "WireGuard server is ready."
+echo "WireGuard server is ready."
 echo "Interface: $WG_INTERFACE"
 echo "UDP port: $WG_PORT"
 echo "VPN network: $WG_NETWORK"
+echo "Default egress: $DEFAULT_IFACE"
 echo "Next: sudo bash scripts/add-client.sh phone"
