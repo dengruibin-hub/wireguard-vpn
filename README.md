@@ -8,6 +8,9 @@
 - `scripts/add-client.sh` — 添加客户端并生成配置
 - `scripts/remove-client.sh` — 删除客户端
 - `scripts/show-client.sh` — 显示客户端配置；安装 `qrencode` 后可输出二维码
+- `scripts/list-clients.sh` — 列出客户端、地址、公钥和最近握手状态
+- `scripts/status.sh` — 查看 WireGuard 服务和 Peer 运行状态
+- `scripts/doctor.sh` — 自动检查服务、转发、端口和 NAT 等关键配置
 - `configs/` — 本地生成配置目录（默认不提交敏感配置）
 
 ## 当前架构
@@ -66,25 +69,46 @@ sudo bash scripts/add-client.sh phone
 
 将该配置导入 WireGuard 官方客户端即可。
 
-### 3. 查看客户端配置
+### 3. 手机二维码导入
+
+如果服务器安装了 `qrencode`，可以直接显示二维码：
 
 ```bash
 sudo bash scripts/show-client.sh phone
 ```
 
-如果服务器安装了 `qrencode`，该命令还会显示终端二维码，方便手机导入。
+手机 WireGuard App 扫描二维码即可导入。客户端配置包含私钥，请勿截图公开或提交到 GitHub。
 
-### 4. 删除客户端
+### 4. 客户端管理
+
+列出所有客户端及最近握手状态：
+
+```bash
+sudo bash scripts/list-clients.sh
+```
+
+删除客户端：
 
 ```bash
 sudo bash scripts/remove-client.sh phone
 ```
+
+### 5. 一键健康检查
+
+安装完成后建议运行：
+
+```bash
+sudo bash scripts/doctor.sh
+```
+
+它会检查 WireGuard 服务、接口、IPv4 转发、UDP 监听端口、NAT 和 Peer 数量。
 
 ## 运维检查
 
 查看 WireGuard 状态：
 
 ```bash
+sudo bash scripts/status.sh
 sudo wg show
 sudo systemctl status wg-quick@wg0
 ```
