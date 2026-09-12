@@ -50,7 +50,10 @@ while IFS= read -r peer; do
 
   name="-"
   if [[ -n "$allowed" && -f "$WG_CONF" ]]; then
-    name="$(awk -v ip="$allowed" '\n      /^# client: / {name=$0; sub(/^# client: /, "", name)}\n      $0 == "AllowedIPs = " ip {print name; exit}\n    ' "$WG_CONF")"
+    name="$(awk -v ip="$allowed" '
+      /^# client: / {name=$0; sub(/^# client: /, "", name)}
+      $0 == "AllowedIPs = " ip {print name; exit}
+    ' "$WG_CONF")"
     [[ -z "$name" ]] && name="-"
   fi
 
